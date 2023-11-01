@@ -21,5 +21,3 @@ Ràng buộc đầu ra (Output Constraints): Ràng buộc đầu ra có thể đ
 Thay đổi cấu trúc (Structural Constraints): Một loại ràng buộc khác là việc áp dụng cấu trúc cố định cho lớp MLP. Ví dụ, ràng buộc một số lớp chỉ chấp nhận các biểu đồ kết nối cụ thể giữa các đơn vị. Điều này có thể giúp mạng học cách biểu diễn các mẫu dữ liệu theo một cách cố định, giúp tạo sự ổn định và hiệu quả.
 
 Hạn chế số lượng tham số (Parameter Constraints): Ràng buộc có thể giúp kiểm soát và giảm số lượng tham số trong mô hình. Điều này có thể giúp tăng khả năng tổng quát hóa, giảm nguy cơ overfitting và làm cho mô hình dễ quản lý hơn.
-
-
