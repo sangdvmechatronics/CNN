@@ -1,2 +1,2 @@
-# CNN
+# Pytorch
 Học và thực hành
