@@ -78,7 +78,7 @@ n_actions = env.action_space.n
 state, info = env.reset()
 n_observations = len(state)
 
-policy_net = DQN(n_observations, n_actions).to(device)
+policy_net = DQN(n_observations, n_actions).to(device) ## di chuyển tính toán lên thiết bị GPU hoặc CPU đã khai báo
 target_net = DQN(n_observations, n_actions).to(device)
 target_net.load_state_dict(policy_net.state_dict())
 
@@ -88,7 +88,7 @@ memory = ReplayMemory(10000)
 
 steps_done = 0
 
-
+### lựa chọn theo thuật toán tham lam
 def select_action(state):
     global steps_done
     sample = random.random()
@@ -137,16 +137,14 @@ def plot_durations(show_result=False):
 def optimize_model():
     if len(memory) < BATCH_SIZE:
         return
-    transitions = memory.sample(BATCH_SIZE)
-    # Transpose the batch (see https://stackoverflow.com/a/19343/3343043 for
-    # detailed explanation). This converts batch-array of Transitions
-    # to Transition of batch-arrays.
-    batch = Transition(*zip(*transitions))
+    transitions = memory.sample(BATCH_SIZE)  ## random batch
+    
+    batch = Transition(*zip(*transitions)) ## nén để biến đổi dữ liệu về dạng phù hợp
 
     # Compute a mask of non-final states and concatenate the batch elements
     # (a final state would've been the one after which simulation ended)
     non_final_mask = torch.tensor(tuple(map(lambda s: s is not None,
-                                          batch.next_state)), device=device, dtype=torch.bool)
+                                          batch.next_state)), device=device, dtype=torch.bool)  ## kiêmt ra xem phải điều kiện dừng hay không
     non_final_next_states = torch.cat([s for s in batch.next_state
                                                 if s is not None])
     state_batch = torch.cat(batch.state)
@@ -177,7 +175,7 @@ def optimize_model():
     optimizer.zero_grad()
     loss.backward()
     # In-place gradient clipping
-    torch.nn.utils.clip_grad_value_(policy_net.parameters(), 100)
+    torch.nn.utils.clip_grad_value_(policy_net.parameters(), 100) ## giới hạn tốc độ tăng giảm gradient trong quá trình tăng giảm tham số mô hình
     optimizer.step()
 
 
