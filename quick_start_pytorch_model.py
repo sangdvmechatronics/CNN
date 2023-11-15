@@ -138,7 +138,7 @@ classes = [
 ]
 
 model.eval()
-x, y = test_data[0][0], test_data[0][1]
+x, y = test_data[3][0], test_data[3][1]
 with torch.no_grad():
     x = x.to(device)
     pred = model(x)

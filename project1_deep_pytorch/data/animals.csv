@@ -1,0 +1,7 @@
+Image_Name,Image_Path,Class
+img_01.jpeg,cats\img_01.jpeg,0
+img_02.jpeg,cats\img_02.jpeg,0
+img_01.jpeg,dogs\img_01.jpeg,1
+img_02.jpeg,dogs\img_02.jpeg,1
+img_01.jpeg,horses\img_01.jpeg,2
+img_02.jpeg,horses\img_02.jpeg,2
