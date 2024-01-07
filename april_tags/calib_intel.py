@@ -12,25 +12,26 @@ import time
 import copy
 
 
-# # Kích thước bàn cờ (số ô trên hàng và cột)
-# board_size = (7, 7)
+# Kích thước bàn cờ (số ô trên hàng và cột)
+board_size = (7, 10)
 
-# # Kích thước ô trên bàn cờ (đơn vị: mét)
-# square_size = 0.025
+# Kích thước ô trên bàn cờ (đơn vị: mét)
+square_size = 0.021
 
-# # Tạo các điểm của bàn cờ
-# objp = np.zeros((np.prod(board_size), 3), dtype=np.float32)
-# objp[:, :2] = np.mgrid[0:board_size[0], 0:board_size[1]].T.reshape(-1, 2) * square_size
+# Tạo các điểm của bàn cờ
+objp = np.zeros((np.prod(board_size), 3), dtype=np.float32)
+objp[:, :2] = np.mgrid[0:board_size[0], 0:board_size[1]].T.reshape(-1, 2) * square_size
+#print(objp)
 
-# # Danh sách lưu trữ các điểm của bàn cờ và các điểm ảnh tương ứng
-# objpoints = []  # Điểm trên bàn cờ trong không gian 3D
-# imgpoints = []  # Điểm trên ảnh trong không gian 2D
+# Danh sách lưu trữ các điểm của bàn cờ và các điểm ảnh tương ứng
+objpoints = []  # Điểm trên bàn cờ trong không gian 3D
+imgpoints = []  # Điểm trên ảnh trong không gian 2D
 
-# # Đường dẫn đến thư mục chứa ảnh
-# image_folder = 'images_calib/*.png'  # Thay đổi đường dẫn và định dạng ảnh tương ứng
+# Đường dẫn đến thư mục chứa ảnh
+image_folder = 'images_calib/848x480/*.png'  # Thay đổi đường dẫn và định dạng ảnh tương ứng
 
-# # Danh sách các đường dẫn của ảnh
-# images = glob.glob(image_folder)
+# Danh sách các đường dẫn của ảnh
+images = glob.glob(image_folder)
 
 # for index ,img_path in enumerate (images):
 #     # Đọc ảnh từ file
@@ -47,31 +48,31 @@ import copy
 #         # Thêm điểm vào danh sách nếu bàn cờ được nhận diện
 #         objpoints.append(objp)
 #         imgpoints.append(corners)
-#     # if ret:
-#     #         # Hiển thị các góc trên ảnh
-#     #         cv2.drawChessboardCorners(img, board_size, corners, ret)
-#     #         cv2.imshow(f"Chessboard Corners {index}", img)
-#     #         cv2.waitKey(0)
+#     if ret:
+#             ####Hiển thị các góc trên ảnh
+#             cv2.drawChessboardCorners(img, board_size, corners, ret)
+#             # cv2.imshow(f"Chessboard Corners {index}", img)
+#             # cv2.waitKey(0)
 # # Calibrate camera
 # ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
-# # Lưu ma trận camera matrix (mtx) vào file
-# # np.save('camera_matrix.npy', mtx)
+# # ###Lưu ma trận camera matrix (mtx) vào file
+# np.save('848_480_camera_matrix_18_12.npy', mtx)
 
 # # # Lưu distortion coefficients (dist) vào file
-# # np.save('dist_coeffs.npy', dist)
-# # Hiển thị thông số calibrate
-# # print("Camera matrix:")
-# # print(mtx)
-# # print("\nDistortion coefficients:")
-# # print(dist)
+# np.save('848_480_dist_coeffs_18_12.npy', dist)
+# # ###Hiển thị thông số calibrate
+# print("Camera matrix:")
+# print(mtx)
+# print("\nDistortion coefficients:")
+# print(dist)
 
 
 ## Load calibration
 ###Đọc ma trận camera matrix từ file
-loaded_mtx = np.load('camera_matrix.npy')
+loaded_mtx = np.load('848_480_camera_matrix_18_12.npy')
 
 # Đọc distortion coefficients từ file
-loaded_dist = np.load('dist_coeffs.npy')
+loaded_dist = np.load('848_480_dist_coeffs_18_12.npy')
 
 print (f"ma trận {loaded_mtx}"
        +"\n" + f"dist{loaded_dist}")
@@ -79,12 +80,14 @@ print (f"ma trận {loaded_mtx}"
 
 
 
-img = cv2.imread('images_calib\\image_2.png')
+img = cv2.imread('images_calib/848x480/image_10.png')
 h,  w = img.shape[:2]
 print(h, w)
-# Hiệu chỉnh ảnh mà không cắt bớt
+# Hiệu chỉnh ảnh =  0 là loại bỏ các pixel không mong muốn , =1 là giữ lại và bổ xung nên đen
 newcameramtx, roi = cv2.getOptimalNewCameraMatrix(loaded_mtx, loaded_dist, img.shape[1::-1], 0, img.shape[1::-1])
 undistorted_img = cv2.undistort(img, loaded_mtx, loaded_dist, None, newcameramtx)
+
+#np.save('848_480_new_camera_matrix_18_12.npy', newcameramtx)
 
 print("New Camera Matrix:")
 print(newcameramtx)

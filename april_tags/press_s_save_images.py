@@ -2,15 +2,15 @@ import cv2
 import os
 
 # Tạo thư mục để lưu ảnh
-output_folder = 'images_calib'
+output_folder = 'images_calib/848x480'
 os.makedirs(output_folder, exist_ok=True)
 
 # Đối tượng VideoCapture cho camera Intel
 cap = cv2.VideoCapture(2)  # 0 là chỉ số của camera, có thể thay đổi nếu bạn có nhiều camera
 
 # Thiết lập độ phân giải
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, 848)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 # Biến đếm số thứ tự ảnh
 image_count = 1
 

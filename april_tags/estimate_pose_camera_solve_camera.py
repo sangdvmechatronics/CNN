@@ -70,19 +70,25 @@ def main_all():
     )
 
     elapsed_time = 0
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
+
+    ## theo dõi đối tượng trong không gian
+    #fig = plt.figure()
+    #ax = fig.add_subplot(111, projection='3d')
 
 
     # Khởi tạo pipeline cho camera RealSense
     pipeline = rs.pipeline()
     config = rs.config()
-    config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
-
+    config.enable_stream(rs.stream.color, 848, 480, rs.format.bgr8, 30)
     # Bắt đầu streaming
     pipeline.start(config)
-    K_camera_matrix  = np.load('camera_matrix.npy')
-    D_camera_matrix_coeffs = np.load('dist_coeffs.npy')
+    # Đọc ma trận camera
+    K_camera_matrix = np.load('camera_matrix/848_480_new_camera_matrix_18_12.npy')  
+    #print("K_camera_matrix", K_camera_matrix)
+    loaded_mtx = np.load('camera_matrix/848_480_camera_matrix_18_12.npy')
+    # Đọc distortion coefficients từ file
+    loaded_dist = np.load('camera_matrix/848_480_dist_coeffs_18_12.npy')
+
     file_path = "data_angle.txt"
     global previous_tvec
     time_run = 0
@@ -91,7 +97,7 @@ def main_all():
   
         while True:
             start_time = time.time()
-            time.sleep(0.1)
+            time.sleep(0.2)
 
             # Đợi và lấy frame từ camera
             frames = pipeline.wait_for_frames()
@@ -100,10 +106,13 @@ def main_all():
                 continue
             # Chuyển đổi frame sang mảng numpy
             color_image = np.asanyarray(color_frame.get_data())
-            # color_image_calib = cv2.undistort(color_image, K_camera_matrix, D_camera_matrix_coeffs)
+            ## thực hiện undistorted_image
+            undistorted_img = cv2.undistort(color_image, loaded_mtx, loaded_dist, None, K_camera_matrix)
+            x, y, w, h = 0, 0, 847, 479
+            color_image = color_image[y:y+h, x:x+w]
 
-            # debug_image = copy.deepcopy(color_image_calib)
             debug_image = copy.deepcopy(color_image)
+            
 
             image = cv2.cvtColor(color_image, cv2.COLOR_BGR2GRAY)
             tags = at_detector.detect(
@@ -116,23 +125,25 @@ def main_all():
 
             debug_image, src_points = draw_tags(debug_image, tags, elapsed_time, src_points)
             print(debug_image.shape)
+            print("src_points ", src_points)
 
             elapsed_time = time.time() - start_time
             time_run += elapsed_time
 
             print("Time: ", time_run)
 
-            dst_points = np.array([[0,0,0],[7.5,0,0],[7.5,-7.5,0],[0,-7.5,0]])
+            dst_points = np.array([[0,0,0],[0,7.5,0],[7.5,-7.5,0],[0,-7.5,0]])
 
             src_points = src_points.astype('float32')
             dst_points = dst_points.astype('float32')
             
             #print(f"kich thuoc mang dst points \n {dst_points} \nmang src points {src_points}\n ma tran K {K_camera_matrix.shape} \n ma tran D {D_camera_matrix_coeffs.shape}")
-            R, tvec = estimate_pose_camera(src_points, dst_points, K_camera_matrix, D_camera_matrix_coeffs)
-            angle_degrees_X, angle_degrees_Y, angle_degrees_Z = matrix_to_axis_angle(R)
+            R, tvec = estimate_pose_camera(src_points, dst_points, K_camera_matrix, loaded_dist)
+            #angle_degrees_X, angle_degrees_Y, angle_degrees_Z = matrix_to_axis_angle(R)
             # Chuyển đổi rvec thành ma trận quay R
             previous_tvec = tvec
-            save_data(time_run, file_path, angle_degrees_X, angle_degrees_Y, angle_degrees_Z)
+            ### Lưu database
+            #save_data(time_run, file_path, angle_degrees_X, angle_degrees_Y, angle_degrees_Z)
 
             # Hiển thị đồ thị
             
@@ -144,7 +155,6 @@ def main_all():
             if key == 27:  # ESC
                 break
 
-            # 画面反映 #############################################################
             cv2.imshow('AprilTag Detect Demo', debug_image)
 
             # Hiển thị ảnh RGB
@@ -215,7 +225,12 @@ def draw_tags(
 
     return image, src_points
 def estimate_pose_camera(src_points, dst_points, K_camera_matrix, D_camera_matrix_coeffs):
-    retval, rvec, tvec = cv2.solvePnP(dst_points, src_points, K_camera_matrix, D_camera_matrix_coeffs, flags=cv2.SOLVEPNP_ITERATIVE)
+    retval, rvec, tvec = cv2.solvePnP(dst_points, src_points, K_camera_matrix,\
+                                       D_camera_matrix_coeffs, flags=cv2.SOLVEPNP_ITERATIVE) ## Phương pháp lặp dựa trên tối ưu hóa Levenberg-Marquardt
+    
+    print("rvec: ", rvec)
+    print("tvec: ", tvec)
+
     R, _ = cv2.Rodrigues(rvec)
     # Chuyển đổi R và tvec để có ma trận T
     R_inv = R.T
@@ -235,7 +250,10 @@ def estimate_pose_camera(src_points, dst_points, K_camera_matrix, D_camera_matri
     T[:3, 3:] = pose[:3, 3:]
 
     # print(f"Estimated : \n {R} \n ----------\n {tvec}" )
-    print(f"pose : \n {pose}")
+    #print(f" T : \n {T}")
+
+    #print(f"pose camera : \n {pose}")
+
     print("--------------------------------")
     
     return R, tvec
@@ -299,7 +317,7 @@ def save_data(time_run, file_path, angle_degrees_X, angle_degrees_Y, angle_degre
     with open(file_path, "a") as file:
         # Ghi dòng mới vào tệp
         line = f"{time_run}\t{angle_degrees_X}\t{angle_degrees_Y}\t{angle_degrees_Z}\n"
-        file.write(line)
+        # file.write(line)
 
     print("------Đã lưu--------")
 
