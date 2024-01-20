@@ -1,27 +1,52 @@
-import numpy as np
-import math
++ (CameraPose)findCameraPose: (NSArray<NSValue *> *) objectPoints imagePoints: (NSArray<NSValue *> *) imagePoints size: (CGSize) size {
 
-def extract_rotation_info(m):
-    trace = m[0, 0] + m[1, 1] + m[2, 2]
-    angle = math.acos((trace - 1) / 2) if -1 <= (trace - 1) / 2 <= 1 else 0
+    vector<Point3f> cvObjectPoints = [self convertObjectPoints:objectPoints];
+    vector<Point2f> cvImagePoints = [self convertImagePoints:imagePoints withSize: size];
 
-    if angle != 0:
-        x = (m[2, 1] - m[1, 2]) / (2 * math.sin(angle))
-        y = (m[0, 2] - m[2, 0]) / (2 * math.sin(angle))
-        z = (m[1, 0] - m[0, 1]) / (2 * math.sin(angle))
-    else:
-        x = y = z = 0
+    std::cout << "object points: " << cvObjectPoints << std::endl;
+    std::cout << "image points: " << cvImagePoints << std::endl;
 
-    angle_degrees = math.degrees(angle)
+    cv::Mat distCoeffs(4,1,cv::DataType<double>::type, 0.0);
+    cv::Mat rvec(3,1,cv::DataType<double>::type);
+    cv::Mat tvec(3,1,cv::DataType<double>::type);
+    cv::Mat cameraMatrix = [self intrinsicMatrixWithImageSize: size];
 
-    print(f"Góc xoay: {angle_degrees} độ")
-    print(f"Trục xoay: {x}, {y}, {z}")
+    cv::solvePnP(cvObjectPoints, cvImagePoints, cameraMatrix, distCoeffs, rvec, tvec);
 
-    return angle_degrees, x, y, z
+    std::cout << "rvec: " << rvec << std::endl;
+    std::cout << "tvec: " << tvec << std::endl;
 
-# Sử dụng hàm với một ma trận xoay ví dụ
-R_example = np.array([[0.866, -0.5, 0],
-                     [0.5, 0.866, 0],
-                     [0, 0, 1]])
+    std::vector<cv::Point2f> projectedPoints;
+    cvObjectPoints.push_back(Point3f(0.0, 0.0, 0.0));
+    cv::projectPoints(cvObjectPoints, rvec, tvec, cameraMatrix, distCoeffs, projectedPoints);
 
-extract_rotation_info(R_example)
+    for(unsigned int i = 0; i < projectedPoints.size(); ++i) {
+        std::cout << "Image point: " << cvImagePoints[i] << " Projected to " << projectedPoints[i] << std::endl;
+    }
+
+
+    cv::Mat RotX(3, 3, cv::DataType<double>::type);
+    cv::setIdentity(RotX);
+    RotX.at<double>(4) = -1; //cos(180) = -1
+    RotX.at<double>(8) = -1;
+
+    cv::Mat R;
+    cv::Rodrigues(rvec, R);
+
+    R = R.t();  // rotation of inverse
+    Mat rvecConverted;
+    Rodrigues(R, rvecConverted); //
+    std::cout << "rvec in world coords:\n" << rvecConverted << std::endl;
+    rvecConverted = RotX * rvecConverted;
+    std::cout << "rvec scenekit :\n" << rvecConverted << std::endl;
+
+    Mat tvecConverted = -R * tvec;
+    std::cout << "tvec in world coords:\n" << tvecConverted << std::endl;
+    tvecConverted = RotX * tvecConverted;
+    std::cout << "tvec scenekit :\n" << tvecConverted << std::endl;
+
+    SCNVector4 rotationVector = SCNVector4Make(rvecConverted.at<double>(0), rvecConverted.at<double>(1), rvecConverted.at<double>(2), norm(rvecConverted));
+    SCNVector3 translationVector = SCNVector3Make(tvecConverted.at<double>(0), tvecConverted.at<double>(1), tvecConverted.at<double>(2));
+
+    return CameraPose{rotationVector, translationVector};
+}

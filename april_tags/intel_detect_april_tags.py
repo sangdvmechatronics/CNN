@@ -41,16 +41,11 @@ def main_all():
     refine_edges = args.refine_edges
     decode_sharpening = args.decode_sharpening
     debug = args.debug
-
-    # カメラ準備 ###############################################################
-   
-
     
     # os.add_dll_directory("C:/Users/username/Miniconda3/envs/my_env/lib/site-packages/pupil_apriltags.libs")
     os.add_dll_directory("E:\FRAMEWORK\LANGUAGE\Anaconda_install\envs\do_an\Lib\site-packages\pupil_apriltags.libs")
     # os.add_dll_directory("E:\FRAMEWORK\LANGUAGE\Anaconda_install\envs\do_an\Lib\site-packages\pupil_apriltags\lib\apriltag.dll")
-
-
+    
     # Detector準備 #############################################################
     at_detector = Detector(
         families=families,
@@ -67,10 +62,16 @@ def main_all():
     # Khởi tạo pipeline cho camera RealSense
     pipeline = rs.pipeline()
     config = rs.config()
-    config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
+    config.enable_stream(rs.stream.color, 848, 480, rs.format.bgr8, 30)
 
     # Bắt đầu streaming
     pipeline.start(config)
+    # Đọc ma trận camera
+    K_camera_matrix = np.load('camera_matrix/848_480_new_camera_matrix_18_12.npy')  
+    #print("K_camera_matrix", K_camera_matrix)
+    loaded_mtx = np.load('camera_matrix/848_480_camera_matrix_18_12.npy')
+    # Đọc distortion coefficients từ file
+    loaded_dist = np.load('camera_matrix/848_480_dist_coeffs_18_12.npy')
 
     try:
         while True:
@@ -85,8 +86,15 @@ def main_all():
 
             # Chuyển đổi frame sang mảng numpy
             color_image = np.asanyarray(color_frame.get_data())
-            debug_image = copy.deepcopy(color_image)
+            ## thực hiện undistorted_image
+            undistorted_img = cv2.undistort(color_image, loaded_mtx, loaded_dist, None, K_camera_matrix)
 
+            x, y, w, h = 0, 0, 847, 479
+
+            color_image = color_image[y:y+h, x:x+w]
+            ## Tạo bản sao
+            debug_image = copy.deepcopy(color_image)
+            ## Xử lý
             image = cv2.cvtColor(color_image, cv2.COLOR_BGR2GRAY)
             tags = at_detector.detect(
                 image,
@@ -95,7 +103,6 @@ def main_all():
                 tag_size=None,
             )
 
-            # 描画 ################################################################
             debug_image = draw_tags(debug_image, tags, elapsed_time)
 
             elapsed_time = time.time() - start_time
@@ -105,7 +112,6 @@ def main_all():
             if key == 27:  # ESC
                 break
 
-            # 画面反映 #############################################################
             cv2.imshow('AprilTag Detect Demo', debug_image)
 
             # Hiển thị ảnh RGB
@@ -138,9 +144,11 @@ def draw_tags(
         corner_04 = (int(corners[3][0]), int(corners[3][1]))
 
         print(f'Show_conner: {corner_01}: {corner_02}: {corner_03}: {corner_04}')
+        print(f"image_shape: {image.shape}")
 
         # 中心
         cv2.circle(image, (center[0], center[1]), 5, (0, 0, 255), 2)
+    
 
         # 各辺
         cv2.line(image, (corner_01[0], corner_01[1]),
