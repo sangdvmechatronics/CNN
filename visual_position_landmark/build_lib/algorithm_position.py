@@ -11,13 +11,14 @@ from build_lib.find_ROI import *
 
 class calculate_position():
     
-    def __init__(self,center_list, point_x, tag_id, dpi):
+    def __init__(self,center_list, point_x, tag_id, dpi_x, dpi_y):
 
         self.center_list = center_list
         self.point_x = point_x
         self.count = tag_id
         self.info_landmarks = info_landmarks(self.count)
-        self.dpi = dpi
+        self.dpi_x = dpi_x
+        self.dpi_y = dpi_y
 
     # Tính toán khoảng cách 
     def calculate_distances(self):
@@ -38,15 +39,15 @@ class calculate_position():
         min_index = distances.index(distance_robot)
         min_cx, min_cy = self.center_list[min_index]
 
-        distance_robot *= self.dpi ### thực hiện hiểu chỉnh với thực tế
+        distance_robot *= self.dpi_x ### thực hiện hiểu chỉnh với thực tế
         return distance_robot, min_cx, min_cy
 
     # Tạo vectors ngắn nhất từ tâm đường tròn tới đường tròn  gần tâm ảnh crop nhất
     ## Dùng để tính theta
     def create_vector_X_crop(self):
         # Tâm ảnh crop thực hiển điều chỉnh cắt
-        cx = 45
-        cy = 45
+        cx = 20
+        cy = 20
         vector_X_cropped = None
         if len(self.point_x_2) > 0:
             center1 = self.point_x_2[0] # lấy tọa độ của điểm đầu tiên trong mảng
@@ -70,6 +71,10 @@ class calculate_position():
         theta_val_rad = np.arctan2(vector_X_cropped[1], vector_X_cropped[0]) 
         theta_val_degree = np.degrees(theta_val_rad)  # Chuyển đổi sang đơn vị độ
         #print("góc: ", theta_val_rad)
+
+
+        theta_val_rad = theta_val_rad 
+        #print("góc: ", theta_val_rad)
         return theta_val_rad
     
     def pos_tranform_robot_to_landmank(self, theta_val_rad, r_BA):
@@ -91,7 +96,6 @@ class calculate_position():
         return r_B_i 
     ## Run
     def pos_robot(self, r_B_i,r_BA ,theta_val_rad, vector_X_cropped):
-        dpi = 7/17 
         if self.point_x is not None:
             distance_robot, min_cx, min_cy = self.calculate_distances()
             if vector_X_cropped is not None:
@@ -102,8 +106,8 @@ class calculate_position():
                 r_BA = None
                 theta_val= None
         if r_BA is not None and theta_val is not None:
-            r_B_i[0] *= self.dpi 
-            r_B_i[1] *= self.dpi 
+            r_B_i[0] *= self.dpi_x 
+            r_B_i[1] *= self.dpi_y 
         else:
             r_B_i = None
         return r_B_i , theta_val
@@ -118,9 +122,9 @@ class calculate_position():
                 #print("ma trận gắn với là ", T)
                 r_B_g = r_O_i + np.dot(T, r_B_i)
                 theta_val = theta_val ### Do đang bị ngược với quy ước của arctan2 có thẻ thay đổi 
-                phi_r = phi + theta_val
-                pos_robot_real = [[r_B_g[0, 0]], [r_B_g[1,0]], [-1*phi_r]]
-            
+                phi_r = phi - theta_val - np.pi/2
+                pos_robot_real = [[r_B_g[0, 0]], [r_B_g[1,0]], [phi_r]]
+        print("Pose_theta: ", np.rad2deg(phi_r))
         return pos_robot_real
     def run_position(self, cropped_img):
         try:
@@ -129,9 +133,10 @@ class calculate_position():
             
 
             pre2_landmarks = detect_landmark(cropped_img, show = False)
-            center_list_2, point_x_2, tag_id_2, dpi_2 = pre2_landmarks.run_detect_tag()
+            center_list_2, point_x_2, tag_id_2, dpi_x_2, dpi_y_2 = pre2_landmarks.run_detect_tag()
             self.point_x_2 = point_x_2
             vector_X_cropped = self.create_vector_X_crop()
+            #print(vector_X_cropped)
 
             r_BA = self.create_vector_rAB(min_cx, min_cy)
             theta_val_rad = self.theta(vector_X_cropped)
@@ -139,7 +144,7 @@ class calculate_position():
             r_B_i = self.pos_tranform_robot_to_landmank(theta_val_rad, r_BA)
             r_B_i , theta_val = self.pos_robot(r_B_i, r_BA, theta_val_rad, vector_X_cropped)
 
-            print(theta_val_rad)
+            #print(theta_val_rad)
             result = self.pos_robot_to_global(r_B_i , theta_val)
             ##print(result)
             return result

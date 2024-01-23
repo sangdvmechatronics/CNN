@@ -22,14 +22,11 @@ def program_main():
     actual_position = [[0],[0],[0]]
     time_input_start = later = later_1 = time.time()
     t_i= 0
-    # if not os.path.exists(os.path.join(os.getcwd(), "video_1.mp4")):
-    #     width = 848
-    #     height = 480
-    #     fps = 15
-    #     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    #     out = cv2.VideoWriter(os.path.join(os.getcwd(), "video_1.mp4"), fourcc, fps, (width, height))
     time_input_start = time.time()
-    time.sleep(2)
+    time.sleep(3)
+    #out = save_video()
+    cap = cv2.VideoCapture("4.mp4")
+
     try:
         while not exit_flag:
             time.sleep(0.1)
@@ -39,16 +36,22 @@ def program_main():
             print(f"Time: {round(t_i,2)} (s)\n")
             time_input_start = time_input_end
             # Đợi và lấy frame từ camera
-            frames = pipeline.wait_for_frames()
-            color_frame = frames.get_color_frame()
-            depth_frame = frames.get_depth_frame()  # Lấy frame độ sâu
+            #frames = pipeline.wait_for_frames()
+            _, frames = cap.read()
+            frames = cv2.resize(frames, (848,480))
+            cv2.imshow("video", frames)
+            color_image = frames.copy()
 
+            #color_frame = frames.get_color_frame()
+            color_image = get_images(color_image, K_camera_matrix ,loaded_mtx, loaded_dist)
+            #depth_frame = frames.get_depth_frame()  # Lấy frame độ sâu
+            color_frame = color_image.copy()
             #color_frame = cv2.imread("build_lib/april_tag_19.jpg")
-            if not color_frame or  not depth_frame:
-                continue
-            color_image, depth_frame = get_images(color_frame, depth_frame, K_camera_matrix ,loaded_mtx, loaded_dist)
+            # if not color_frame :
+            #     continue
+            #color_image, depth_frame = get_images(color_frame, depth_frame, K_camera_matrix ,loaded_mtx, loaded_dist)
             
-            #out.write(color_frame)
+            #out.write(frames)
             color_image_copy = color_image.copy()
 
             # cv2.imshow("color_image", color_image_copy)
@@ -56,17 +59,17 @@ def program_main():
             #          break
             pre_landmarks = detect_landmark(color_image_copy, show = True)
             if pre_landmarks is not None:
-                center_list, point_x, tag_id, dpi = pre_landmarks.run_detect_tag()
+                center_list, point_x, tag_id, dpi_x, dpi_y = pre_landmarks.run_detect_tag()
                 #print(f"center_list: {center_list}\n point_x: {point_x}\tag: {tag_id} \n dpi: {dpi}")
                 if len(center_list) > 0:
-                    robot = calculate_position(center_list, point_x, tag_id, dpi)
+                    robot = calculate_position(center_list, point_x, tag_id, dpi_x, dpi_y)
                     distance_robot, min_cx, min_cy = robot.calculate_distances()
                     cropped_img = crop_ROI_tags(color_image, min_cx, min_cy)
 
                     # print(f"toạ độ tâm: {min_cx}, min_cy: {min_cy}")
                     # print(f"distance_robot: {distance_robot}")
                     ### Lấy thêm thông tin để khẳng định độ chắc chắn dự đoán dựa trên chiều cao
-                    depth_value = depth_frame.get_distance(min_cx, min_cy) 
+                    #depth_value = depth_frame.get_distance(min_cx, min_cy) 
                     #print(f"depth_value: {round(depth_value,2)}")
                     pos_robot_real = robot.run_position(cropped_img)
                     

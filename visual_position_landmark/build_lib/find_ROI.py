@@ -32,16 +32,19 @@ class detect_landmark():
         center_list = []
         point_x = ()
         tag_id = None
-        dpi = None
-        center_list, point_x, tag_id, dpi = self.draw_tags(debug_image, tags, center_list, point_x, tag_id, dpi)
+        # dpi_x = dpi_y = 0.4052631578947368
+        dpi_x = dpi_y = 0.39513
+
+        center_list, point_x, tag_id, dpi_x, dpi_y = self.draw_tags(debug_image, tags, center_list, point_x, tag_id, dpi_x, dpi_y)
+
         #elapsed_time = time.time() - start_time
         #print("Elapsed time: ", elapsed_time)
         #print("No information landmark...")
-        return center_list, point_x, tag_id, dpi
+        return center_list, point_x, tag_id, dpi_x, dpi_y
 
         
 
-    def draw_tags(self, debug_image, tags, center_list, point_x, tag_id, dpi):
+    def draw_tags(self, debug_image, tags, center_list, point_x, tag_id, dpi_x, dpi_y):
         # cv2.imshow("anh", debug_image)
         # cv2.waitKey(0)
         for tag in tags:
@@ -59,8 +62,17 @@ class detect_landmark():
             corner_02 = (int(corners[1][0]), int(corners[1][1]))
             corner_03 = (int(corners[2][0]), int(corners[2][1]))
             corner_04 = (int(corners[3][0]), int(corners[3][1]))
-            dpi = 7.7 /(corner_02[0] - corner_01[0])
-            point_x = tuple( (x + y)/2 for x, y in zip(corner_01, corner_02))
+            print(corner_03, corner_04)
+            if (corner_04[0]):
+                # dpi_x = 7.7 /(np.abs(corner_04[0] - corner_03[0]))
+                # dpi_y = 7.7 /(np.abs(corner_04[1] - corner_03[1]))
+                # dpi_x = dpi_y =  0.4052631578947368
+                dpi_x = dpi_y = 0.39513
+                #print("dpt ", dpi_x,dpi_y)
+            else:
+                # dpi_x = dpi_y =  0.4052631578947368
+                dpi_x = dpi_y = 0.39513
+            point_x = tuple( (x + y)/2 for x, y in zip(corner_04, corner_03))
             #print(point_x)
             cv2.circle(debug_image, (int(point_x[0]), int(point_x[1])), 5, (255, 0, 0), 5)
             #print(f'Show_conner: {corner_01}: {corner_02}: {corner_03}: {corner_04}')
@@ -82,8 +94,9 @@ class detect_landmark():
         #
         if self.show == True:
                 cv2.imshow("anh", debug_image)
-
-        return center_list, point_x, tag_id, dpi
+        print("tag_id : ", tag_id)
+        
+        return center_list, point_x, tag_id, dpi_x, dpi_y
         
 
 

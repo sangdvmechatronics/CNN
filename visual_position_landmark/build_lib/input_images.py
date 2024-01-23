@@ -7,8 +7,8 @@ import os
 def crop_ROI_tags(img, min_cx, min_cy):
     if os.path.exists('img/landmark.jpg'):
         os.remove('img/landmark.jpg')
-    x1, y1 = int(min_cx - 45), int(min_cy - 45)
-    x2, y2 = int(min_cx + 45), int(min_cy + 45)
+    x1, y1 = int(min_cx - 20), int(min_cy - 20)
+    x2, y2 = int(min_cx + 20), int(min_cy + 20)
     if x1 >= 0 and y1 >= 0 and x2 <= img.shape[1] and y2 <= img.shape[0]:
 
         cropped_img = img[y1:y2, x1:x2]
@@ -29,15 +29,14 @@ def configure_camera():
     return K_camera_matrix ,loaded_mtx, loaded_dist
 
 
-def get_images(color_image, depth_frame, K_camera_matrix ,loaded_mtx, loaded_dist):
-    depth_image = np.asanyarray(depth_frame.get_data())
-
-    color_image = np.asanyarray(color_image.get_data())
+def get_images(color_image, K_camera_matrix ,loaded_mtx, loaded_dist):
+    #depth_image = np.asanyarray(depth_frame.get_data())
+    #color_image = np.asanyarray(color_image.get_data())
     ## thực hiện undistorted_image
     undistorted_img = cv2.undistort(color_image, loaded_mtx, loaded_dist, None, K_camera_matrix)
     x, y, w, h = 0, 0, 847, 479
     color_image = color_image[y:y+h, x:x+w]
-    return color_image , depth_frame
+    return color_image 
 
 
 ##Test camera

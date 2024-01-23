@@ -23,3 +23,13 @@ def check_array(actual_position):
             if element !=0 : 
                 run = 1
     return run
+def save_video():
+    if os.path.exists(os.path.join(os.getcwd(), "video_1.mp4")):
+        os.remove(os.path.join(os.getcwd(), "video_1.mp4"))
+    else:
+        width = 848
+        height = 480
+        fps = 15
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        out = cv2.VideoWriter(os.path.join(os.getcwd(), "video_1.mp4"), fourcc, fps, (width, height))
+    return out
