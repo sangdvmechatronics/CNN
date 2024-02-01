@@ -6,6 +6,18 @@ from pupil_apriltags import Detector
 import time
 import copy
 
+families = 'tag36h11'
+nthreads = 1
+quad_decimate = 2.0
+quad_sigma = 0.0
+refine_edges = 1
+decode_sharpening = 0.25
+debug = 0 
+#os.add_dll_directory("E:\FRAMEWORK\LANGUAGE\Anaconda_install\envs\do_an\Lib\site-packages\pupil_apriltags.libs")
+os.add_dll_directory("C:/Users/VICTUS/Documents/GitHub/CNN/visual_position_landmark/build_lib/pupil_apriltags.libs")        
+at_detector = Detector(families=families,nthreads=nthreads,quad_decimate=quad_decimate,
+                        quad_sigma=quad_sigma,refine_edges=refine_edges,decode_sharpening=decode_sharpening,debug=debug)
+elapsed_time = 0
 class detect_landmark():
 
     def __init__(self, img, show = True):
@@ -14,17 +26,7 @@ class detect_landmark():
 
     def run_detect_tag(self):
         start_time = time.time()
-        families = 'tag36h11'
-        nthreads = 1
-        quad_decimate = 2.0
-        quad_sigma = 0.0
-        refine_edges = 1
-        decode_sharpening = 0.25
-        debug = 0 
-        os.add_dll_directory("E:\FRAMEWORK\LANGUAGE\Anaconda_install\envs\do_an\Lib\site-packages\pupil_apriltags.libs")        
-        at_detector = Detector(families=families,nthreads=nthreads,quad_decimate=quad_decimate,
-                               quad_sigma=quad_sigma,refine_edges=refine_edges,decode_sharpening=decode_sharpening,debug=debug)
-        elapsed_time = 0
+
         debug_image = copy.deepcopy(self.img)
         ## Xử lý trên ảnh gốc còn ảnh copy sẽ dùng để vẽ
         image = cv2.cvtColor(self.img, cv2.COLOR_BGR2GRAY)

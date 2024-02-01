@@ -25,7 +25,7 @@ def program_main():
     time_input_start = time.time()
     time.sleep(3)
     #out = save_video()
-    cap = cv2.VideoCapture("4.mp4")
+    #cap = cv2.VideoCapture("4.mp4")
 
     try:
         while not exit_flag:
@@ -36,21 +36,21 @@ def program_main():
             print(f"Time: {round(t_i,2)} (s)\n")
             time_input_start = time_input_end
             # Đợi và lấy frame từ camera
-            #frames = pipeline.wait_for_frames()
-            _, frames = cap.read()
-            frames = cv2.resize(frames, (848,480))
-            cv2.imshow("video", frames)
-            color_image = frames.copy()
+            frames = pipeline.wait_for_frames()
+            # _, frames = cap.read()
+            # frames = cv2.resize(frames, (848,480))
+            # #cv2.imshow("video", frames)
+            # color_image = frames.copy()
 
-            #color_frame = frames.get_color_frame()
-            color_image = get_images(color_image, K_camera_matrix ,loaded_mtx, loaded_dist)
-            #depth_frame = frames.get_depth_frame()  # Lấy frame độ sâu
-            color_frame = color_image.copy()
+            color_frame = frames.get_color_frame()
+            #color_image = get_images(color_image, K_camera_matrix ,loaded_mtx, loaded_dist)
+            depth_frame = frames.get_depth_frame()  # Lấy frame độ sâu
+            #color_frame = color_frame.copy()
             #color_frame = cv2.imread("build_lib/april_tag_19.jpg")
-            # if not color_frame :
-            #     continue
-            #color_image, depth_frame = get_images(color_frame, depth_frame, K_camera_matrix ,loaded_mtx, loaded_dist)
-            
+            if not color_frame :
+                continue
+            color_image, depth_frame = get_images(color_frame, depth_frame, K_camera_matrix ,loaded_mtx, loaded_dist)
+            cv2.imshow("image_raw ",color_image)
             #out.write(frames)
             color_image_copy = color_image.copy()
 
@@ -69,7 +69,7 @@ def program_main():
                     # print(f"toạ độ tâm: {min_cx}, min_cy: {min_cy}")
                     # print(f"distance_robot: {distance_robot}")
                     ### Lấy thêm thông tin để khẳng định độ chắc chắn dự đoán dựa trên chiều cao
-                    #depth_value = depth_frame.get_distance(min_cx, min_cy) 
+                    depth_value = depth_frame.get_distance(min_cx, min_cy) 
                     #print(f"depth_value: {round(depth_value,2)}")
                     pos_robot_real = robot.run_position(cropped_img)
                     

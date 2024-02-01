@@ -30,13 +30,13 @@ def configure_camera():
 
 
 def get_images(color_image, K_camera_matrix ,loaded_mtx, loaded_dist):
-    #depth_image = np.asanyarray(depth_frame.get_data())
-    #color_image = np.asanyarray(color_image.get_data())
+    # depth_image = np.asanyarray(depth_frame.get_data())
+    # color_image = np.asanyarray(color_image.get_data())
     ## thực hiện undistorted_image
     undistorted_img = cv2.undistort(color_image, loaded_mtx, loaded_dist, None, K_camera_matrix)
     x, y, w, h = 0, 0, 847, 479
     color_image = color_image[y:y+h, x:x+w]
-    return color_image 
+    return color_image
 
 
 ##Test camera

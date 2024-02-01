@@ -61,7 +61,7 @@ class calculate_position():
     # Tạo vectors AB ( từ tâm hình tròn tới tâm ảnh) ( rB -rA)
     def create_vector_rAB(self, min_cx, min_cy):
         #### Cộng thêm quá trình hiệu chỉnh tâm robot về tam ảnh
-        r_BA = np.array([848/2 - min_cx, 480/2  - min_cy])
+        r_BA = np.array([847/2 - min_cx, 479/2  - min_cy])
         #print("r_BA", r_BA)
         return r_BA
 
@@ -122,8 +122,8 @@ class calculate_position():
                 #print("ma trận gắn với là ", T)
                 r_B_g = r_O_i + np.dot(T, r_B_i)
                 theta_val = theta_val ### Do đang bị ngược với quy ước của arctan2 có thẻ thay đổi 
-                phi_r = phi - theta_val - np.pi/2
-                pos_robot_real = [[r_B_g[0, 0]], [r_B_g[1,0]], [phi_r]]
+                phi_r = phi - theta_val 
+                pos_robot_real = [[r_B_g[0, 0]+3.25], [r_B_g[1,0]], [phi_r]]
         print("Pose_theta: ", np.rad2deg(phi_r))
         return pos_robot_real
     def run_position(self, cropped_img):
